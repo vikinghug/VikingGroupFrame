@@ -1,4 +1,4 @@
-<Addon Name="VikingGroupDisplay" Version="Vikinghug" Author="" APIVersion="8" Description="">
+<Addon Name="VikingGroupDisplay" Version="0.1" Author="VikinghugUI" APIVersion="8" Description="Replaces GroupFrame">
     <Script Name="VikingGroupDisplay.lua"/>
     <Form Name="VikingGroupDisplay.xml"/>
     <Script Name="VikingGroupDisplayOptions.lua"/>
