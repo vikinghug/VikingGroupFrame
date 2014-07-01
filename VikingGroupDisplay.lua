@@ -49,12 +49,12 @@ local ktSmallInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
 
 local ktInviteClassIcons =
 {
-  [GameLib.CodeEnumClass.Warrior]       = "VikingTargetSprites:ClassWarrior",
-  [GameLib.CodeEnumClass.Engineer]      = "VikingTargetSprites:ClassEngineer",
-  [GameLib.CodeEnumClass.Esper]         = "VikingTargetSprites:ClassEsper",
-  [GameLib.CodeEnumClass.Medic]         = "VikingTargetSprites:ClassMedic",
-  [GameLib.CodeEnumClass.Stalker]       = "VikingTargetSprites:ClassStalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "VikingTargetSprites:ClassSpellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
+  [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
+  [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
 }
 
 local karMessageIconString =
@@ -245,7 +245,10 @@ function VikingGroupDisplay:new(o)
 end
 
 function VikingGroupDisplay:Init()
-  Apollo.RegisterAddon(self)
+
+  local tDependencies = { "VikingLibrary" }
+  Apollo.RegisterAddon(self, false, "", tDependencies)
+
 end
 
 function VikingGroupDisplay:OnSave(eType)
@@ -308,8 +311,6 @@ function VikingGroupDisplay:OnLoad()
   self.xmlOptionsDoc = XmlDoc.CreateFromFile("VikingGroupDisplayOptions.xml")
   self.xmlDoc = XmlDoc.CreateFromFile("VikingGroupDisplay.xml")
   self.xmlDoc:RegisterCallback("OnDocumentReady", self)
-
-  Apollo.LoadSprites("VikingGroupFrameSprites.xml")
 end
 
 function VikingGroupDisplay:OnDocumentReady()
