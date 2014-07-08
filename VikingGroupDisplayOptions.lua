@@ -176,6 +176,21 @@ function VikingGroupDisplayOptions:HelperRedrawSpecific(strMenuName, tProvidedVa
 	else
 		self.wndMain:FindChild("ConvertToRaid"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListDisabled"))
 	end
+	
+	if Hide == 1 then
+	self.wndMain:FindChild("HideMembers"):Enable(true)
+	self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
+	self.wndMain:FindChild("ShowMembers"):Enable(true)
+	self.wndMain:FindChild("ShowMembers"):Show(false, true)
+	end
+	if Hide == 0 then
+	self.wndMain:FindChild("HideMembers"):Enable(true)
+	self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
+	self.wndMain:FindChild("ShowMembers"):Enable(true)
+	self.wndMain:FindChild("HideMembers"):Show(false, true)
+	end
+
+
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -347,3 +362,23 @@ end
 
 local VikingGroupDisplayOptionsInst = VikingGroupDisplayOptions:new()
 VikingGroupDisplayOptionsInst:Init()
+
+---------------------------------------------------------------------------------------------------
+-- Hide Members
+---------------------------------------------------------------------------------------------------
+
+function VikingGroupDisplayOptions:OnShowMembers( wndHandler, wndControl, eMouseButton )
+	Hide = 1
+	HidePortrait ()
+	self.wndMain:FindChild("HideMembers"):Show(true)
+	self.wndMain:FindChild("ShowMembers"):Show(false)
+	self.wndMain:Show(false)
+end
+
+function VikingGroupDisplayOptions:OnHideMembers( wndHandler, wndControl, eMouseButton )
+	Hide = 0
+	HidePortrait ()
+	self.wndMain:FindChild("HideMembers"):Show(false)
+	self.wndMain:FindChild("ShowMembers"):Show(true)
+	self.wndMain:Show(false)
+end
