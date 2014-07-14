@@ -58,7 +58,7 @@ function VikingGroupDisplayOptions:Initialize(wndParent)
 		[Item.CodeEnumItemQuality.Average] 			= Apollo.GetString("CRB_Average"),
 		[Item.CodeEnumItemQuality.Good] 			= Apollo.GetString("CRB_Good"),
 		[Item.CodeEnumItemQuality.Excellent] 		= Apollo.GetString("CRB_Excellent"),
-		[Item.CodeEnumItemQuality.Superb] 			= Apollo.GetString("CRB_Superb"),
+ 		[Item.CodeEnumItemQuality.Superb] 			= Apollo.GetString("CRB_Superb"),
 		[Item.CodeEnumItemQuality.Legendary] 		= Apollo.GetString("CRB_Legendary"),
 		[Item.CodeEnumItemQuality.Artifact]	 		= Apollo.GetString("CRB_Artifact")
 	}
@@ -177,18 +177,18 @@ function VikingGroupDisplayOptions:HelperRedrawSpecific(strMenuName, tProvidedVa
 		self.wndMain:FindChild("ConvertToRaid"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListDisabled"))
 	end
 	
-	if Hide == 1 then
-	self.wndMain:FindChild("HideMembers"):Enable(true)
-	self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
-	self.wndMain:FindChild("ShowMembers"):Enable(true)
-	self.wndMain:FindChild("ShowMembers"):Show(false, true)
-	end
-	if Hide == 0 then
-	self.wndMain:FindChild("HideMembers"):Enable(true)
-	self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
-	self.wndMain:FindChild("ShowMembers"):Enable(true)
-	self.wndMain:FindChild("HideMembers"):Show(false, true)
-	end
+  if Hide == 1 then
+    self.wndMain:FindChild("HideMembers"):Enable(true)
+    self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
+    self.wndMain:FindChild("ShowMembers"):Enable(true)
+    self.wndMain:FindChild("ShowMembers"):Show(false, true)
+  end
+  if Hide == 0 then
+    self.wndMain:FindChild("HideMembers"):Enable(true)
+    self.wndMain:FindChild("HideMembers"):FindChild("OptionsBtnText"):SetTextColor(ApolloColor.new("UI_BtnTextHoloListNormal"))
+    self.wndMain:FindChild("ShowMembers"):Enable(true)
+    self.wndMain:FindChild("HideMembers"):Show(false, true)
+  end
 
 
 end
@@ -368,17 +368,17 @@ VikingGroupDisplayOptionsInst:Init()
 ---------------------------------------------------------------------------------------------------
 
 function VikingGroupDisplayOptions:OnShowMembers( wndHandler, wndControl, eMouseButton )
-	Hide = 1
-	HidePortrait ()
-	self.wndMain:FindChild("HideMembers"):Show(true)
-	self.wndMain:FindChild("ShowMembers"):Show(false)
-	self.wndMain:Show(false)
+  Hide = 1
+  HidePortrait ()
+  self.wndMain:FindChild("HideMembers"):Show(true)
+  self.wndMain:FindChild("ShowMembers"):Show(false)
+  self.wndMain:Show(false)
 end
 
 function VikingGroupDisplayOptions:OnHideMembers( wndHandler, wndControl, eMouseButton )
-	Hide = 0
-	HidePortrait ()
-	self.wndMain:FindChild("HideMembers"):Show(false)
-	self.wndMain:FindChild("ShowMembers"):Show(true)
-	self.wndMain:Show(false)
+  Hide = 0
+  HidePortrait ()
+  self.wndMain:FindChild("HideMembers"):Show(false)
+  self.wndMain:FindChild("ShowMembers"):Show(true)
+  self.wndMain:Show(false)
 end

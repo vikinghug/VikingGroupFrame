@@ -374,12 +374,12 @@ function VikingGroupDisplay:OnDocumentReady()
   
   Hide=1
   function HidePortrait ()
-	if Hide==0 then
-	self.wndGroupPortraitContainer:Show (false, true)
-	end
-	if Hide==1 then
-	self.wndGroupPortraitContainer:Show (true, false)
-	end
+    if Hide==0 then
+      self.wndGroupPortraitContainer:Show (false, true)
+    end
+    if Hide==1 then
+      self.wndGroupPortraitContainer:Show (true, false)
+    end
   end
 
   self.wndGroupInviteDialog   = Apollo.LoadForm(self.xmlDoc, "GroupInviteDialog", nil, self)
