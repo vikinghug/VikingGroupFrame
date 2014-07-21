@@ -317,6 +317,10 @@ function VikingGroupDisplay:OnDocumentReady()
   if  self.xmlDoc == nil then
     return
   end
+
+  Apollo.RegisterEventHandler("WindowManagementReady"      , "OnWindowManagementReady"      , self)
+  Apollo.RegisterEventHandler("WindowManagementUpdate"     , "OnWindowManagementUpdate"     , self)
+
   Apollo.RegisterEventHandler("Group_Invited",      "OnGroupInvited", self)       -- ( name )
   Apollo.RegisterEventHandler("Group_Invite_Result",    "OnGroupInviteResult", self)    -- ( name, result )
   Apollo.RegisterEventHandler("Group_JoinRequest",    "OnGroupJoinRequest", self)     -- ( name )
@@ -435,6 +439,15 @@ function VikingGroupDisplay:OnDocumentReady()
       Apollo.StartTimer("GroupUpdateTimer")
     end
   end
+end
+
+function VikingGroupDisplay:OnWindowManagementReady()
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndGroupHud, strName = "Viking Group Hud" })
+end
+
+
+function VikingGroupDisplay:OnWindowManagementUpdate(tWindow)
+
 end
 
 function VikingGroupDisplay:VikingGroupDisplayOptions_TEMP()
