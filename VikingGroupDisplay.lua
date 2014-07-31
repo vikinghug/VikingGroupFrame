@@ -49,12 +49,12 @@ local ktSmallInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
 
 local ktInviteClassIcons =
 {
-  [GameLib.CodeEnumClass.Warrior]       = "VikingLibrary:ClassWarrior",
-  [GameLib.CodeEnumClass.Engineer]      = "VikingLibrary:ClassEngineer",
-  [GameLib.CodeEnumClass.Esper]         = "VikingLibrary:ClassEsper",
-  [GameLib.CodeEnumClass.Medic]         = "VikingLibrary:ClassMedic",
-  [GameLib.CodeEnumClass.Stalker]       = "VikingLibrary:ClassStalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "VikingLibrary:ClassSpellslinger",
+  [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
+  [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
+  [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
 }
 
 local karMessageIconString =
@@ -369,6 +369,16 @@ function VikingGroupDisplay:OnDocumentReady()
   self.tMessageQueue      = {nFirst = 0, nLast = -1}
 
   self.wndGroupPortraitContainer = self.wndGroupHud:FindChild("GroupPortraitContainer")
+  
+  Hide=1
+  function HidePortrait ()
+    if Hide==0 then
+      self.wndGroupPortraitContainer:Show (false, true)
+    end
+    if Hide==1 then
+      self.wndGroupPortraitContainer:Show (true, false)
+    end
+  end
 
   self.wndGroupInviteDialog   = Apollo.LoadForm(self.xmlDoc, "GroupInviteDialog", nil, self)
   self.wndGroupInviteDialog:Show(false, true)
@@ -864,6 +874,7 @@ function VikingGroupDisplay:DrawMemberPortrait(tPortrait, tMemberInfo)
   tPortrait.wndLeader:Show(tMemberInfo.bIsLeader)
   tPortrait.wndClass:Show(tMemberInfo.bIsOnline)
   tPortrait.wndPathIcon:Show(tMemberInfo.bIsOnline)
+  tPortrait.wndOffline:SetRotation(90)
   tPortrait.wndOffline:Show(not tMemberInfo.bIsOnline)
   tPortrait.wndHud:FindChild("DeadIndicator"):Show(bDead)
   tPortrait.wndHud:FindChild("GroupPortraitHealthBG"):Show(tMemberInfo.nHealth > 0)
