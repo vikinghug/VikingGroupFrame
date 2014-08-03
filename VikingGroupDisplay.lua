@@ -245,10 +245,8 @@ function VikingGroupDisplay:new(o)
 end
 
 function VikingGroupDisplay:Init()
-
   local tDependencies = { "VikingLibrary" }
   Apollo.RegisterAddon(self, false, "", tDependencies)
-
 end
 
 function VikingGroupDisplay:OnSave(eType)
@@ -375,6 +373,16 @@ function VikingGroupDisplay:OnDocumentReady()
   self.tMessageQueue      = {nFirst = 0, nLast = -1}
 
   self.wndGroupPortraitContainer = self.wndGroupHud:FindChild("GroupPortraitContainer")
+  
+  Hide=1
+  function HidePortrait ()
+    if Hide==0 then
+      self.wndGroupPortraitContainer:Show (false, true)
+    end
+    if Hide==1 then
+      self.wndGroupPortraitContainer:Show (true, false)
+    end
+  end
 
   self.wndGroupInviteDialog   = Apollo.LoadForm(self.xmlDoc, "GroupInviteDialog", nil, self)
   self.wndGroupInviteDialog:Show(false, true)
