@@ -12,222 +12,206 @@ require "PlayerPathLib"
 require "ChatSystemLib"
 require "MatchingGame"
 
+local VikingLib
 local VikingGroupDisplay = {}
 
--- let's create some member variables
-local tColors = {
-  black       = ApolloColor.new("ff201e2d"),
-  white       = ApolloColor.new("ffffffff"),
-  lightGrey   = ApolloColor.new("ffbcb7da"),
-  green       = ApolloColor.new("cc06ff5e"),
-  yellow      = ApolloColor.new("ffffd161"),
-  lightPurple = ApolloColor.new("ff645f7e"),
-  purple      = ApolloColor.new("ff28253a"),
-  red         = ApolloColor.new("ffe05757"),
-  blue        = ApolloColor.new("cc49e8ee")
-}
-
-
-local knHealthRed                      = 0.3
-local knHealthYellow                   = 0.5
-
 local ktInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
-{
-  [PlayerPathLib.PlayerPathType_Soldier]    = "Icon_Windows_UI_CRB_Soldier",
-  [PlayerPathLib.PlayerPathType_Settler]    = "Icon_Windows_UI_CRB_Colonist",
-  [PlayerPathLib.PlayerPathType_Scientist]  = "Icon_Windows_UI_CRB_Scientist",
-  [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer"
-}
+  {
+    [PlayerPathLib.PlayerPathType_Soldier]    = "Icon_Windows_UI_CRB_Soldier",
+    [PlayerPathLib.PlayerPathType_Settler]    = "Icon_Windows_UI_CRB_Colonist",
+    [PlayerPathLib.PlayerPathType_Scientist]  = "Icon_Windows_UI_CRB_Scientist",
+    [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer"
+  }
 
 local ktSmallInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
-{
-  [PlayerPathLib.PlayerPathType_Soldier]    = "Icon_Windows_UI_CRB_Soldier_Small",
-  [PlayerPathLib.PlayerPathType_Settler]    = "Icon_Windows_UI_CRB_Colonist_Small",
-  [PlayerPathLib.PlayerPathType_Scientist]  = "Icon_Windows_UI_CRB_Scientist_Small",
-  [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer_Small"
-}
+  {
+    [PlayerPathLib.PlayerPathType_Soldier]    = "Icon_Windows_UI_CRB_Soldier_Small",
+    [PlayerPathLib.PlayerPathType_Settler]    = "Icon_Windows_UI_CRB_Colonist_Small",
+    [PlayerPathLib.PlayerPathType_Scientist]  = "Icon_Windows_UI_CRB_Scientist_Small",
+    [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer_Small"
+  }
 
 local ktInviteClassIcons =
-{
-  [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
-  [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
-  [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
-  [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
-  [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
-  [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
-}
+  {
+    [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
+    [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
+    [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
+    [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
+    [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
+    [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
+  }
 
 local karMessageIconString =
-{
-  "MessageIcon_Sent",
-  "MessageIcon_Deny",
-  "MessageIcon_Accept",
-  "MessageIcon_Joined",
-  "MessageIcon_Left",
-  "MessageIcon_Promoted",
-  "MessageIcon_Kicked",
-  "MessageIcon_Disbanded",
-  "MessageIcon_Error"
-}
+  {
+    "MessageIcon_Sent",
+    "MessageIcon_Deny",
+    "MessageIcon_Accept",
+    "MessageIcon_Joined",
+    "MessageIcon_Left",
+    "MessageIcon_Promoted",
+    "MessageIcon_Kicked",
+    "MessageIcon_Disbanded",
+    "MessageIcon_Error"
+  }
 
 local ktMessageIcon =
-{
-  Sent    = 1,
-  Deny    = 2,
-  Accept    = 3,
-  Joined    = 4,
-  Left    = 5,
-  Promoted  = 6,
-  Kicked    = 7,
-  Disbanded   = 8,
-  Error     = 9
-}
+  {
+    Sent        = 1,
+    Deny        = 2,
+    Accept      = 3,
+    Joined      = 4,
+    Left        = 5,
+    Promoted    = 6,
+    Kicked      = 7,
+    Disbanded   = 8,
+    Error       = 9
+  }
 
 local ktActionResultStrings =
-{
-  [GroupLib.ActionResult.LeaveFailed]           = {strMsg = Apollo.GetString("Group_LeaveFailed"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.DisbandFailed]         = {strMsg = Apollo.GetString("Group_DisbandFailed"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.KickFailed]            = {strMsg = Apollo.GetString("Group_KickFailed"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.PromoteFailed]           = {strMsg = Apollo.GetString("Group_PromoteFailed"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.FlagsFailed]           = {strMsg = Apollo.GetString("Group_FlagsFailed"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MemberFlagsFailed]         = {strMsg = Apollo.GetString("Group_MemberFlagsFailed"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.NotInGroup]            = {strMsg = Apollo.GetString("Group_NotInGroup"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.ChangeSettingsFailed]      = {strMsg = Apollo.GetString("Group_SettingsFailed"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MentoringInvalidMentor]      = {strMsg = Apollo.GetString("Group_MentorInvalid"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MentoringInvalidMentee]      = {strMsg = Apollo.GetString("Group_MenteeInvalid"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.InvalidGroup]          = {strMsg = Apollo.GetString("Group_InvalidGroup"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MentoringSelf]           = {strMsg = Apollo.GetString("Group_MentorSelf"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.ReadyCheckFailed]        = {strMsg = Apollo.GetString("Group_ReadyCheckFailed"),     strIcon = ktMessageIcon.Accept},
-  [GroupLib.ActionResult.MentoringNotAllowed]       = {strMsg = Apollo.GetString("Group_MentorDisabled"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MarkingNotPermitted]       = {strMsg = Apollo.GetString("Group_CantMark"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.InvalidMarkIndex]        = {strMsg = Apollo.GetString("Group_InvalidMarkIndex"),     strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.InvalidMarkTarget]         = {strMsg = Apollo.GetString("Group_InvalidMarkTarget"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MentoringInCombat]         = {strMsg = Apollo.GetString("Group_MentoringInCombat"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.MentoringLowestLevel]      = {strMsg = Apollo.GetString("Group_LowestLevel"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.ActionResult.AlreadyInGroupInstance]      = {strMsg = Apollo.GetString("AlreadyInGroupInstance"),     strIcon = ktMessageIcon.Error},
-}
+  {
+    [GroupLib.ActionResult.LeaveFailed]            = {strMsg = Apollo.GetString("Group_LeaveFailed"),       strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.DisbandFailed]          = {strMsg = Apollo.GetString("Group_DisbandFailed"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.KickFailed]             = {strMsg = Apollo.GetString("Group_KickFailed"),        strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.PromoteFailed]          = {strMsg = Apollo.GetString("Group_PromoteFailed"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.FlagsFailed]            = {strMsg = Apollo.GetString("Group_FlagsFailed"),       strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MemberFlagsFailed]      = {strMsg = Apollo.GetString("Group_MemberFlagsFailed"), strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.NotInGroup]             = {strMsg = Apollo.GetString("Group_NotInGroup"),        strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.ChangeSettingsFailed]   = {strMsg = Apollo.GetString("Group_SettingsFailed"),    strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MentoringInvalidMentor] = {strMsg = Apollo.GetString("Group_MentorInvalid"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MentoringInvalidMentee] = {strMsg = Apollo.GetString("Group_MenteeInvalid"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.InvalidGroup]           = {strMsg = Apollo.GetString("Group_InvalidGroup"),      strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MentoringSelf]          = {strMsg = Apollo.GetString("Group_MentorSelf"),        strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.ReadyCheckFailed]       = {strMsg = Apollo.GetString("Group_ReadyCheckFailed"),  strIcon = ktMessageIcon.Accept},
+    [GroupLib.ActionResult.MentoringNotAllowed]    = {strMsg = Apollo.GetString("Group_MentorDisabled"),    strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MarkingNotPermitted]    = {strMsg = Apollo.GetString("Group_CantMark"),          strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.InvalidMarkIndex]       = {strMsg = Apollo.GetString("Group_InvalidMarkIndex"),  strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.InvalidMarkTarget]      = {strMsg = Apollo.GetString("Group_InvalidMarkTarget"), strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MentoringInCombat]      = {strMsg = Apollo.GetString("Group_MentoringInCombat"), strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.MentoringLowestLevel]   = {strMsg = Apollo.GetString("Group_LowestLevel"),       strIcon = ktMessageIcon.Error},
+    [GroupLib.ActionResult.AlreadyInGroupInstance] = {strMsg = Apollo.GetString("AlreadyInGroupInstance"),  strIcon = ktMessageIcon.Error},
+  }
 
 local ktInviteResultStrings =
-{
-  [GroupLib.Result.Sent]          = {strMsg = Apollo.GetString("GroupInviteSent"),        strIcon = ktMessageIcon.Sent},
-  [GroupLib.Result.NoPermissions]     = {strMsg = Apollo.GetString("GroupInviteNoPermission"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.PlayerNotFound]    = {strMsg = Apollo.GetString("GroupPlayerNotFound"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.RealmNotFound]     = {strMsg = Apollo.GetString("GroupRealmNotFound"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Grouped]         = {strMsg = Apollo.GetString("GroupPlayerAlreadyGrouped"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Pending]         = {strMsg = Apollo.GetString("GroupInvitePending"),       strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInviter]    = {strMsg = Apollo.GetString("GroupInviteExpired"),       strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInvitee]    = {strMsg = Apollo.GetString("GroupYourInviteExpired"),     strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.InvitedYou]      = {strMsg = Apollo.GetString("CRB_GroupInviteAlreadyInvited"),  strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.IsInvited]       = {strMsg = Apollo.GetString("Group_AlreadyInvited"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.NoInvitingSelf]    = {strMsg = Apollo.GetString("Group_NoSelfInvite"),       strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Full]          = {strMsg = Apollo.GetString("Group_GroupFull"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.RoleFull]        = {strMsg = Apollo.GetString("Group_RoleFull"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Declined]        = {strMsg = Apollo.GetString("GroupInviteDeclined"),      strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Accepted]        = {strMsg = Apollo.GetString("Group_InviteAccepted"),       strIcon = ktMessageIcon.Accept},
-  [GroupLib.Result.NotAcceptingRequests]  = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),   strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Busy]          = {strMsg = Apollo.GetString("Group_Busy"),           strIcon = ktMessageIcon.Deny},
-}
+  {
+    [GroupLib.Result.Sent]                 = {strMsg = Apollo.GetString("GroupInviteSent"),               strIcon = ktMessageIcon.Sent},
+    [GroupLib.Result.NoPermissions]        = {strMsg = Apollo.GetString("GroupInviteNoPermission"),       strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.PlayerNotFound]       = {strMsg = Apollo.GetString("GroupPlayerNotFound"),           strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.RealmNotFound]        = {strMsg = Apollo.GetString("GroupRealmNotFound"),            strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Grouped]              = {strMsg = Apollo.GetString("GroupPlayerAlreadyGrouped"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Pending]              = {strMsg = Apollo.GetString("GroupInvitePending"),            strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInviter]       = {strMsg = Apollo.GetString("GroupInviteExpired"),            strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInvitee]       = {strMsg = Apollo.GetString("GroupYourInviteExpired"),        strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.InvitedYou]           = {strMsg = Apollo.GetString("CRB_GroupInviteAlreadyInvited"), strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.IsInvited]            = {strMsg = Apollo.GetString("Group_AlreadyInvited"),          strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.NoInvitingSelf]       = {strMsg = Apollo.GetString("Group_NoSelfInvite"),            strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Full]                 = {strMsg = Apollo.GetString("Group_GroupFull"),               strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.RoleFull]             = {strMsg = Apollo.GetString("Group_RoleFull"),                strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Declined]             = {strMsg = Apollo.GetString("GroupInviteDeclined"),           strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Accepted]             = {strMsg = Apollo.GetString("Group_InviteAccepted"),          strIcon = ktMessageIcon.Accept},
+    [GroupLib.Result.NotAcceptingRequests] = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),    strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Busy]                 = {strMsg = Apollo.GetString("Group_Busy"),                    strIcon = ktMessageIcon.Deny},
+  }
 
 local ktJoinRequestResultStrings =
-{
-  [GroupLib.Result.Sent]          = {strMsg = Apollo.GetString("GroupJoinRequestSent"),         strIcon = ktMessageIcon.Sent},
-  [GroupLib.Result.PlayerNotFound]    = {strMsg = Apollo.GetString("GroupPlayerNotFound"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.RealmNotFound]     = {strMsg = Apollo.GetString("GroupRealmNotFound"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Grouped]         = {strMsg = Apollo.GetString("GroupJoinRequestGroup"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Pending]         = {strMsg = Apollo.GetString("GroupJoinRequestPending"),      strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInviter]    = {strMsg = Apollo.GetString("GroupJoinRequestExpired"),      strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInvitee]    = {strMsg = Apollo.GetString("GroupYourJoinRequestExpired"),    strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.InvitedYou]      = {strMsg = Apollo.GetString("CRB_GroupJoinAlreadyRequested"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.NoInvitingSelf]    = {strMsg = Apollo.GetString("Group_NoSelfJoinRequest"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Full]          = {strMsg = Apollo.GetString("Group_GroupFull"),          strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Declined]        = {strMsg = Apollo.GetString("GroupJoinRequestDenied"),       strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Accepted]        = {strMsg = Apollo.GetString("Group_JoinRequestAccepted"),      strIcon = ktMessageIcon.Accept},
-  [GroupLib.Result.ServerControlled]    = {strMsg = Apollo.GetString("Group_JoinRequest_ServerControlled"), strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.GroupNotFound]     = {strMsg = Apollo.GetString("Group_JoinRequest_GroupNotFound"),  strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.NotAcceptingRequests]  = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),     strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Busy]          = {strMsg = Apollo.GetString("Group_Busy"),             strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.SentToLeader]      = {strMsg = Apollo.GetString("Group_SentToLeader"),         strIcon = ktMessageIcon.Sent},
-  [GroupLib.Result.LeaderOffline]     = {strMsg = Apollo.GetString("Group_LeaderOffline"),        strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.WrongFaction]      = {strMsg = Apollo.GetString("GroupWrongFaction"),          strIcon = ktMessageIcon.Deny},
-}
+  {
+    [GroupLib.Result.Sent]                 = {strMsg = Apollo.GetString("GroupJoinRequestSent"),               strIcon = ktMessageIcon.Sent},
+    [GroupLib.Result.PlayerNotFound]       = {strMsg = Apollo.GetString("GroupPlayerNotFound"),                strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.RealmNotFound]        = {strMsg = Apollo.GetString("GroupRealmNotFound"),                 strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Grouped]              = {strMsg = Apollo.GetString("GroupJoinRequestGroup"),              strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Pending]              = {strMsg = Apollo.GetString("GroupJoinRequestPending"),            strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInviter]       = {strMsg = Apollo.GetString("GroupJoinRequestExpired"),            strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInvitee]       = {strMsg = Apollo.GetString("GroupYourJoinRequestExpired"),        strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.InvitedYou]           = {strMsg = Apollo.GetString("CRB_GroupJoinAlreadyRequested"),      strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.NoInvitingSelf]       = {strMsg = Apollo.GetString("Group_NoSelfJoinRequest"),            strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Full]                 = {strMsg = Apollo.GetString("Group_GroupFull"),                    strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Declined]             = {strMsg = Apollo.GetString("GroupJoinRequestDenied"),             strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Accepted]             = {strMsg = Apollo.GetString("Group_JoinRequestAccepted"),          strIcon = ktMessageIcon.Accept},
+    [GroupLib.Result.ServerControlled]     = {strMsg = Apollo.GetString("Group_JoinRequest_ServerControlled"), strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.GroupNotFound]        = {strMsg = Apollo.GetString("Group_JoinRequest_GroupNotFound"),    strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.NotAcceptingRequests] = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),         strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Busy]                 = {strMsg = Apollo.GetString("Group_Busy"),                         strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.SentToLeader]         = {strMsg = Apollo.GetString("Group_SentToLeader"),                 strIcon = ktMessageIcon.Sent},
+    [GroupLib.Result.LeaderOffline]        = {strMsg = Apollo.GetString("Group_LeaderOffline"),                strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.WrongFaction]         = {strMsg = Apollo.GetString("GroupWrongFaction"),                  strIcon = ktMessageIcon.Deny},
+  }
 
 local ktReferralStrings =
-{
-  [GroupLib.Result.PlayerNotFound]    = {strMsg = Apollo.GetString("GroupPlayerNotFound"),        strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.RealmNotFound]     = {strMsg = Apollo.GetString("GroupRealmNotFound"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Grouped]         = {strMsg = Apollo.GetString("GroupPlayerAlreadyGrouped"),      strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Pending]         = {strMsg = Apollo.GetString("GroupInvitePending"),         strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInviter]    = {strMsg = Apollo.GetString("GroupJoinRequestExpired"),      strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.ExpiredInvitee]    = {strMsg = Apollo.GetString("GroupYourJoinRequestExpired"),    strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.InvitedYou]      = {strMsg = Apollo.GetString("CRB_GroupJoinAlreadyRequested"),    strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.NoInvitingSelf]    = {strMsg = Apollo.GetString("Group_NoSelfInvite"),         strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.Full]          = {strMsg = Apollo.GetString("Group_GroupFull"),          strIcon = ktMessageIcon.Error},
-  [GroupLib.Result.NotAcceptingRequests]  = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),     strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Busy]          = {strMsg = Apollo.GetString("Group_Busy"),             strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.SentToLeader]      = {strMsg = Apollo.GetString("Group_SentToLeader"),         strIcon = ktMessageIcon.Sent},
-  [GroupLib.Result.LeaderOffline]     = {strMsg = Apollo.GetString("Group_LeaderOffline"),        strIcon = ktMessageIcon.Deny},
-  [GroupLib.Result.Declined]        = {strMsg = Apollo.GetString("GroupInviteRequestDeclined"),     strIcon = ktMessageIcon.Deny},
-}
+  {
+    [GroupLib.Result.PlayerNotFound]       = {strMsg = Apollo.GetString("GroupPlayerNotFound"),           strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.RealmNotFound]        = {strMsg = Apollo.GetString("GroupRealmNotFound"),            strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Grouped]              = {strMsg = Apollo.GetString("GroupPlayerAlreadyGrouped"),     strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Pending]              = {strMsg = Apollo.GetString("GroupInvitePending"),            strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInviter]       = {strMsg = Apollo.GetString("GroupJoinRequestExpired"),       strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.ExpiredInvitee]       = {strMsg = Apollo.GetString("GroupYourJoinRequestExpired"),   strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.InvitedYou]           = {strMsg = Apollo.GetString("CRB_GroupJoinAlreadyRequested"), strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.NoInvitingSelf]       = {strMsg = Apollo.GetString("Group_NoSelfInvite"),            strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.Full]                 = {strMsg = Apollo.GetString("Group_GroupFull"),               strIcon = ktMessageIcon.Error},
+    [GroupLib.Result.NotAcceptingRequests] = {strMsg = Apollo.GetString("Group_NotAcceptingRequests"),    strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Busy]                 = {strMsg = Apollo.GetString("Group_Busy"),                    strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.SentToLeader]         = {strMsg = Apollo.GetString("Group_SentToLeader"),            strIcon = ktMessageIcon.Sent},
+    [GroupLib.Result.LeaderOffline]        = {strMsg = Apollo.GetString("Group_LeaderOffline"),           strIcon = ktMessageIcon.Deny},
+    [GroupLib.Result.Declined]             = {strMsg = Apollo.GetString("GroupInviteRequestDeclined"),    strIcon = ktMessageIcon.Deny},
+  }
 
 local ktGroupLeftResultStrings =
-{
-  [GroupLib.RemoveReason.Kicked]      = {strMsg = Apollo.GetString("Group_Kicked"),       strIcon = ktMessageIcon.Kicked},
-  [GroupLib.RemoveReason.VoteKicked]    = {strMsg = Apollo.GetString("Group_Kicked"),       strIcon = ktMessageIcon.Kicked},
-  [GroupLib.RemoveReason.Left]      = {strMsg = Apollo.GetString("InstancePartyLeave"),   strIcon = ktMessageIcon.Left},
-  [GroupLib.RemoveReason.Disband]     = {strMsg = Apollo.GetString("GroupDisband"),       strIcon = ktMessageIcon.Disbanded},
-  [GroupLib.RemoveReason.RemovedByServer] = {strMsg = Apollo.GetString("Group_KickedByServer"),   strIcon = ktMessageIcon.Left},
-}
+  {
+    [GroupLib.RemoveReason.Kicked]          = {strMsg = Apollo.GetString("Group_Kicked"),         strIcon = ktMessageIcon.Kicked},
+    [GroupLib.RemoveReason.VoteKicked]      = {strMsg = Apollo.GetString("Group_Kicked"),         strIcon = ktMessageIcon.Kicked},
+    [GroupLib.RemoveReason.Left]            = {strMsg = Apollo.GetString("InstancePartyLeave"),   strIcon = ktMessageIcon.Left},
+    [GroupLib.RemoveReason.Disband]         = {strMsg = Apollo.GetString("GroupDisband"),         strIcon = ktMessageIcon.Disbanded},
+    [GroupLib.RemoveReason.RemovedByServer] = {strMsg = Apollo.GetString("Group_KickedByServer"), strIcon = ktMessageIcon.Left},
+  }
 
 local ktLootRules =
-{
-  [GroupLib.LootRule.Master]      = Apollo.GetString("Group_MasterLoot"),
-  [GroupLib.LootRule.RoundRobin]    = Apollo.GetString("Group_RoundRobin"),
-  [GroupLib.LootRule.NeedBeforeGreed] = Apollo.GetString("Group_NeedBeforeGreed"),
-  [GroupLib.LootRule.FreeForAll]    = Apollo.GetString("Group_FFA")
-}
+  {
+    [GroupLib.LootRule.Master]          = Apollo.GetString("Group_MasterLoot"),
+    [GroupLib.LootRule.RoundRobin]      = Apollo.GetString("Group_RoundRobin"),
+    [GroupLib.LootRule.NeedBeforeGreed] = Apollo.GetString("Group_NeedBeforeGreed"),
+    [GroupLib.LootRule.FreeForAll]      = Apollo.GetString("Group_FFA")
+  }
 
 local ktHarvestLootRules =
-{
-  [GroupLib.HarvestLootRule.FirstTagger]    = Apollo.GetString("Group_FFA"),
-  [GroupLib.HarvestLootRule.RoundRobin]     = Apollo.GetString("Group_RoundRobin"),
-}
+  {
+    [GroupLib.HarvestLootRule.FirstTagger] = Apollo.GetString("Group_FFA"),
+    [GroupLib.HarvestLootRule.RoundRobin]  = Apollo.GetString("Group_RoundRobin"),
+  }
 
 local ktLootThreshold =
-{
-  [Item.CodeEnumItemQuality.Inferior]     = Apollo.GetString("CRB_Inferior"),
-  [Item.CodeEnumItemQuality.Average]      = Apollo.GetString("CRB_Average"),
-  [Item.CodeEnumItemQuality.Good]       = Apollo.GetString("CRB_Good"),
-  [Item.CodeEnumItemQuality.Excellent]    = Apollo.GetString("CRB_Excellent"),
-  [Item.CodeEnumItemQuality.Superb]       = Apollo.GetString("CRB_Superb"),
-  [Item.CodeEnumItemQuality.Legendary]    = Apollo.GetString("CRB_Legendary"),
-  [Item.CodeEnumItemQuality.Artifact]     = Apollo.GetString("CRB_Artifact")
-}
+  {
+    [Item.CodeEnumItemQuality.Inferior]  = Apollo.GetString("CRB_Inferior"),
+    [Item.CodeEnumItemQuality.Average]   = Apollo.GetString("CRB_Average"),
+    [Item.CodeEnumItemQuality.Good]      = Apollo.GetString("CRB_Good"),
+    [Item.CodeEnumItemQuality.Excellent] = Apollo.GetString("CRB_Excellent"),
+    [Item.CodeEnumItemQuality.Superb]    = Apollo.GetString("CRB_Superb"),
+    [Item.CodeEnumItemQuality.Legendary] = Apollo.GetString("CRB_Legendary"),
+    [Item.CodeEnumItemQuality.Artifact]  = Apollo.GetString("CRB_Artifact")
+  }
 
 local ktDifficulty =
-{
-  [GroupLib.Difficulty.Normal]  = Apollo.GetString("CRB_Normal"),
-  [GroupLib.Difficulty.Veteran]   = Apollo.GetString("CRB_Veteran")
-}
+  {
+    [GroupLib.Difficulty.Normal]  = Apollo.GetString("CRB_Normal"),
+    [GroupLib.Difficulty.Veteran] = Apollo.GetString("CRB_Veteran")
+  }
 
 local kstrRaidMarkerToSprite =
-{
-  "Icon_Windows_UI_CRB_Marker_Bomb",
-  "Icon_Windows_UI_CRB_Marker_Ghost",
-  "Icon_Windows_UI_CRB_Marker_Mask",
-  "Icon_Windows_UI_CRB_Marker_Octopus",
-  "Icon_Windows_UI_CRB_Marker_Pig",
-  "Icon_Windows_UI_CRB_Marker_Chicken",
-  "Icon_Windows_UI_CRB_Marker_Toaster",
-  "Icon_Windows_UI_CRB_Marker_UFO",
-}
+  {
+    "Icon_Windows_UI_CRB_Marker_Bomb",
+    "Icon_Windows_UI_CRB_Marker_Ghost",
+    "Icon_Windows_UI_CRB_Marker_Mask",
+    "Icon_Windows_UI_CRB_Marker_Octopus",
+    "Icon_Windows_UI_CRB_Marker_Pig",
+    "Icon_Windows_UI_CRB_Marker_Chicken",
+    "Icon_Windows_UI_CRB_Marker_Toaster",
+    "Icon_Windows_UI_CRB_Marker_UFO",
+  }
 
 local kfMessageDuration = 3.000
 local kfDelayDuration   = 0.010
 local knInviteTimeout   = 29 -- how long until an invite times out (display only, minus one to give code time to start)
 local knMentorTimeout   = 29 -- how long until an invite times out (display only, minus one to give code time to start)
-local knGroupMax    = 5  -- max number of people in a group
-local knInviteMax     = knGroupMax - 1 -- how many people can be invited
-local knSaveVersion   = 1
+local knGroupMax        = 5  -- max number of people in a group
+local knInviteMax       = knGroupMax - 1 -- how many people can be invited
+local knSaveVersion     = 1
 
 ---------------------------------------------------------------------------------------------------
 -- VikingGroupDisplay initialization
@@ -237,9 +221,9 @@ function VikingGroupDisplay:new(o)
   setmetatable(o, self)
   self.__index = self
 
-  o.GroupMemberCount        = 0
-  o.nGroupMemberClicked       = nil
-  o.tGroupUnits           = {}
+  o.GroupMemberCount    = 0
+  o.nGroupMemberClicked = nil
+  o.tGroupUnits         = {}
 
   return o
 end
@@ -249,58 +233,18 @@ function VikingGroupDisplay:Init()
   Apollo.RegisterAddon(self, false, "", tDependencies)
 end
 
-function VikingGroupDisplay:OnSave(eType)
-  if eType ~= GameLib.CodeEnumAddonSaveLevel.Character then
-    return
-  end
-
-  local locInviteLocation = self.wndGroupInviteDialog and self.wndGroupInviteDialog:GetLocation() or self.locSavedInviteLoc
-  local locMentorLocation = self.wndMentor and self.wndMentor:GetLocation() or self.locSavedMentorLoc
-
-  local tSave =
-  {
-    tInviteLocation       = locInviteLocation and locInviteLocation:ToTable() or nil,
-    tMentorLocation       = locMentorLocation and locMentorLocation:ToTable() or nil,
-    bNeverShowRaidConvertNotice = self.bNeverShowRaidConvertNotice or false,
-    fInviteTimerStart       = self.fInviteTimerStartTime,
-    strInviterName        = self.strInviterName,
-    fMentorTimerStart     = self.fMentorTimerStartTime,
-    nSaveVersion        = knSaveVersion,
+function VikingGroupDisplay:GetDefaults()
+  return {
+    char = {
+      NeverShowRaidConvertNotice = false,
+      InviteTimerStart = nil,
+      MentorTimerStart = nil,
+      InviterName      = "",
+    }
   }
 
-  return tSave
 end
 
-function VikingGroupDisplay:OnRestore(eType, tSavedData)
-  if not tSavedData or tSavedData.nSaveVersion ~= knSaveVersion then
-    return
-  end
-
-  self.bNeverShowRaidConvertNotice = tSavedData.bNeverShowRaidConvertNotice or false
-
-  if tSavedData.tInviteLocation then
-    self.locSavedInviteLoc = WindowLocation.new(tSavedData.tInviteLocation)
-  end
-
-  if tSavedData.tMentorLocation then
-    self.locSavedMentorLoc = WindowLocation.new(tSavedData.tMentorLocation)
-  end
-
-  if tSavedData.fInviteTimerStart then
-    local tInviteData = GroupLib.GetInvite()
-    if tInviteData and #tInviteData > 0 then
-      self.fInviteTimerStartTime = tSavedData.fInviteTimerStart
-      self.strInviterName = tSavedData.strInviterName or ""
-    end
-  end
-
-  if tSavedData.fMentorTimerStart then
-    local tMentorData = GroupLib.GetMentoringList()
-    if tMentorData and #tMentorData > 0 then
-      self.fMentorTimerStartTime = tSavedData.fMentorTimerStart
-    end
-  end
-end
 
 ---------------------------------------------------------------------------------------------------
 -- VikingGroupDisplay EventHandlers
@@ -364,6 +308,15 @@ function VikingGroupDisplay:OnDocumentReady()
   ---------------------------------------------------------------------------------------------------
   -- VikingGroupDisplay Member Variables
   ---------------------------------------------------------------------------------------------------
+  if VikingLib == nil then
+    VikingLib = Apollo.GetAddon("VikingLibrary")
+  end
+
+  if VikingLib ~= nil then
+    self.db = VikingLib.Settings.RegisterSettings(self, "VikingGroupDisplay", self:GetDefaults(), "Group Frames")
+    self.generalDb = self.db.parent
+  end
+  
   self.wndGroupHud      = Apollo.LoadForm(self.xmlDoc, "GroupHud", "FixedHudStratum", self)
   self.wndGroupHud:Show(false, true)
   self.wndLeaveGroup      = self.wndGroupHud:FindChild("GroupHudLeaveDialog")
@@ -373,7 +326,7 @@ function VikingGroupDisplay:OnDocumentReady()
   self.tMessageQueue      = {nFirst = 0, nLast = -1}
 
   self.wndGroupPortraitContainer = self.wndGroupHud:FindChild("GroupPortraitContainer")
-  
+
   Hide=1
   function HidePortrait ()
     if Hide==0 then
@@ -396,8 +349,8 @@ function VikingGroupDisplay:OnDocumentReady()
   self.eChatChannel       = ChatSystemLib.ChatChannel_Party
 
   self.wndGroupInviteDialog:Show(false)
-  if self.fInviteTimerStartTime then
-    self:OnGroupInvited(self.strInviterName)
+  if self.db.char.InviteTimerStartTime then
+    self:OnGroupInvited(self.db.char.InviterName)
   end
 
   self.tGroupWndPortraits   = {}
@@ -411,7 +364,7 @@ function VikingGroupDisplay:OnDocumentReady()
     self.wndMentor:MoveToLocation(self.locSavedMentorLoc)
   end
 
-  if self.fMentorTimerStartTime then
+  if self.db.char.MentorTimerStartTime then
     self:OnGroupMentor(GroupLib.GetMentoringList(), GameLib:GetPlayerUnit():IsMentoring(), false)
   end
 
@@ -450,7 +403,10 @@ function VikingGroupDisplay:OnDocumentReady()
 end
 
 function VikingGroupDisplay:OnWindowManagementReady()
-  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndGroupHud, strName = "Viking Group Hud" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndGroupHud,               strName = "Viking Group Hud" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndGroupHud,               strName = "Viking Group Hud" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndGroupInviteDialog,      strName = "Group Invite Dialog" })
+  Event_FireGenericEvent("WindowManagementAdd", { wnd = self.wndMentor,                 strName = "Mentor Dialog" })
 end
 
 
@@ -471,21 +427,21 @@ function VikingGroupDisplay:LoadPortrait(idx)
   local wndHud = Apollo.LoadForm(self.xmlDoc, "GroupPortraitHud", self.wndGroupPortraitContainer)
 
   self.tGroupWndPortraits[idx] =
-  {
-    idx         = idx,
-    wndHud        = wndHud,
-    wndLeader       = wndHud:FindChild("Leader"),
-    wndName       = wndHud:FindChild("Name"),
-    wndClass      = wndHud:FindChild("Class"),
-    wndHealth       = wndHud:FindChild("Health"),
-    wndShields      = wndHud:FindChild("Shields"),
-    wndMaxShields     = wndHud:FindChild("MaxShields"),
-    wndMaxAbsorb    = wndHud:FindChild("MaxAbsorbBar"),
-    wndLowHealthFlash = wndHud:FindChild("LowHealthFlash"),
-    wndPathIcon     = wndHud:FindChild("PathIcon"),
-    wndOffline      = wndHud:FindChild("Offline"),
-    wndMark       = wndHud:FindChild("Mark")
-  }
+    {
+      idx               = idx,
+      wndHud            = wndHud,
+      wndLeader         = wndHud:FindChild("Leader"),
+      wndName           = wndHud:FindChild("Name"),
+      wndClass          = wndHud:FindChild("Class"),
+      wndHealth         = wndHud:FindChild("Health"),
+      wndShields        = wndHud:FindChild("Shields"),
+      wndMaxShields     = wndHud:FindChild("MaxShields"),
+      wndMaxAbsorb      = wndHud:FindChild("MaxAbsorbBar"),
+      wndLowHealthFlash = wndHud:FindChild("LowHealthFlash"),
+      wndPathIcon       = wndHud:FindChild("PathIcon"),
+      wndOffline        = wndHud:FindChild("Offline"),
+      wndMark           = wndHud:FindChild("Mark")
+    }
 
   self.tGroupWndPortraits[idx].wndHud:Show(false)
 
@@ -511,7 +467,7 @@ end
 ---------------------------------------------------------------------------------------------------
 function VikingGroupDisplay:OnGroupInvited(strInviterName) -- builds the invite when I recieve it
   ChatSystemLib.PostOnChannel(self.eChatChannel, String_GetWeaselString(Apollo.GetString("GroupInvite"), strInviterName), "")
-  self.strInviterName = strInviterName
+  self.db.char.InviterName = strInviterName
 
   self.wndInviteMemberList:DestroyChildren()
 
@@ -546,18 +502,18 @@ function VikingGroupDisplay:OnGroupInvited(strInviterName) -- builds the invite 
   end
   self.wndInviteMemberList:ArrangeChildrenVert()
 
-  if not self.fInviteTimerStartTime then
-    self.fInviteTimerStartTime = os.clock()
+  if not self.db.char.InviteTimerStartTime then
+    self.db.char.InviteTimerStartTime = os.clock()
   end
 
-  self.fInviteTimerDelta = os.clock() - self.fInviteTimerStartTime
+  self.fInviteTimerDelta = os.clock() - self.db.char.InviteTimerStartTime
   self.wndGroupInviteDialog:FindChild("Timer"):SetText("")
   local strTime = string.format("%d:%02d", math.floor(self.fInviteTimerDelta / 60), math.ceil(30 - (self.fInviteTimerDelta % 60)))
   self.wndGroupInviteDialog:FindChild("Timer"):SetText(String_GetWeaselString(Apollo.GetString("Group_ExpiresTimer"), strTime))
   Apollo.CreateTimer("InviteTimer", 1.000, true)
 
-   self.wndGroupInviteDialog:Invoke(true)
-   Sound.Play(Sound.PlayUISocialPartyInviteSent)
+  self.wndGroupInviteDialog:Invoke(true)
+  Sound.Play(Sound.PlayUISocialPartyInviteSent)
 end
 
 function VikingGroupDisplay:OnGroupJoinRequest(strInviterName) -- builds the invite when I recieve it
@@ -598,7 +554,7 @@ end
 function VikingGroupDisplay:OnGroupInviteDialogAccept()
   GroupLib.AcceptInvite()
   self.wndGroupInviteDialog:Show(false)
-  self.fInviteTimerStartTime = nil
+  self.db.char.InviteTimerStartTime = nil
   Apollo.StopTimer("InviteTimer")
   Sound.Play(Sound.PlayUISocialPartyInviteAccept)
 end
@@ -606,7 +562,7 @@ end
 function VikingGroupDisplay:OnGroupInviteDialogDecline()
   GroupLib.DeclineInvite()
   self.wndGroupInviteDialog:Show(false)
-  self.fInviteTimerStartTime = nil
+  self.db.char.InviteTimerStartTime = nil
   Apollo.StopTimer("InviteTimer")
   Sound.Play(Sound.PlayUISocialPartyInviteDecline)
 end
@@ -688,7 +644,7 @@ function VikingGroupDisplay:OnGroupUpdated()
       self.wndRaidNotice = nil
     end
 
-    if self.bNeverShowRaidConvertNotice == false then
+    if self.db.char.NeverShowRaidConvertNotice == false then
       self.wndRaidNotice = Apollo.LoadForm(self.xmlOptionsDoc, "RaidConvertedForm", nil, self)
       self.wndRaidNotice:Show(true)
       self.wndRaidNotice:ToFront()
@@ -719,12 +675,12 @@ function VikingGroupDisplay:OnGroupUpdated()
     for idx = 1, self.nGroupMemberCount do
       local tMemberInfo = GroupLib.GetGroupMember(idx)
       if tMemberInfo ~= nil then
-        if self.tGroupWndPortraits[idx] == nil then
-          self:LoadPortrait(idx)
-        end
-        self.tGroupWndPortraits[idx].wndHud:Show(true)
+	if self.tGroupWndPortraits[idx] == nil then
+	  self:LoadPortrait(idx)
+	end
+	self.tGroupWndPortraits[idx].wndHud:Show(true)
 
-        nCount = nCount + 1
+	nCount = nCount + 1
       end
     end
   end
@@ -869,7 +825,7 @@ function VikingGroupDisplay:DrawMemberPortrait(tPortrait, tMemberInfo)
 
   local strName = tMemberInfo.strCharacterName
   if not tMemberInfo.bIsOnline then
-        strName = String_GetWeaselString(Apollo.GetString("Group_OfflineMember"), strName)
+    strName = String_GetWeaselString(Apollo.GetString("Group_OfflineMember"), strName)
   elseif not unitMember then
     strName = String_GetWeaselString(Apollo.GetString("Group_OutOfRangeMember"), strName)
   end
@@ -928,6 +884,10 @@ end
 
 function VikingGroupDisplay:HelperUpdateHealth(tPortrait, tMemberInfo, unitMember)
 
+  local tColors = VikingLib.Settings.GetColors()
+  local knHealthRed                      = 0.3
+  local knHealthYellow                   = 0.5
+
 
   local nHealthCurr   = tMemberInfo.nHealth
   local nHealthMax  = tMemberInfo.nHealthMax
@@ -948,20 +908,20 @@ function VikingGroupDisplay:HelperUpdateHealth(tPortrait, tMemberInfo, unitMembe
   local nPointAbsorbRight = self.nFrameRight * nAbsorbMax
 
 
--- Color
+  -- Color
 
   if unitMember and unitMember:IsInCCState(Unit.CodeEnumCCState.Vulnerability) then
-    tPortrait.wndHealth:SetBarColor(tColors.lightPurple)
+    tPortrait.wndHealth:SetBarColor("ff" .. tColors.lightPurple)
 
   elseif nHealthCurr / nHealthMax <= knHealthRed then
-    tPortrait.wndHealth:SetBarColor(tColors.red)
+    tPortrait.wndHealth:SetBarColor("ff" .. tColors.red)
   elseif nHealthCurr / nHealthMax <= knHealthYellow then
-    tPortrait.wndHealth:SetBarColor(tColors.yellow)
+    tPortrait.wndHealth:SetBarColor("ff" .. tColors.yellow)
   else
-    tPortrait.wndHealth:SetBarColor(tColors.green)
+    tPortrait.wndHealth:SetBarColor("ff" .. tColors.green)
   end
 
-  tPortrait.wndShields:SetBarColor(tColors.blue)
+  tPortrait.wndShields:SetBarColor("ff" .. tColors.blue)
 
 
   -- Resize
@@ -1062,7 +1022,7 @@ function VikingGroupDisplay:OnGroupRemove(strMemberName, eReason) -- someone els
     local strMsg = String_GetWeaselString(Apollo.GetString("Group_KickedPlayer"), strMemberName)
     self:AddToQueue(ktMessageIcon.Kicked, strMsg)
   elseif  eReason == GroupLib.RemoveReason.Left or eReason == GroupLib.RemoveReason.Disband or
-      eReason == GroupLib.RemoveReason.RemovedByServer or eReason == GroupLib.RemoveReason.Disconnected then
+  eReason == GroupLib.RemoveReason.RemovedByServer or eReason == GroupLib.RemoveReason.Disconnected then
 
     local strMsg = String_GetWeaselString(Apollo.GetString("GroupLeft"), strMemberName)
     self:AddToQueue(ktMessageIcon.Left, strMsg)
@@ -1106,19 +1066,19 @@ function VikingGroupDisplay:OnGroupDeclineInvite() -- I've declined an invitatio
 end
 
 function VikingGroupDisplay:OnLootRollUpdate()
---[[
+  --[[
   local tLootRolls = GameLib.GetLootRolls()
   for idx, tLoot in ipairs(tLootRolls) do
     --GameLib.RollOnLoot(tLoot.lootId, true)
   end
-]]--
+  ]]--
 end
 
 function VikingGroupDisplay:OnGroupLeft(eReason)
   local unitMe = GameLib.GetPlayerUnit()
   if unitMe == nil then
     return
-    end
+  end
 
   local strMsg = ktGroupLeftResultStrings[eReason].strMsg
 
@@ -1150,15 +1110,15 @@ function VikingGroupDisplay:OnGroupMemberFlags(nMemberIndex, bIsFromPromotion, t
 
     if not bIsFromPromotionOrRaidAssistant then
       if tMember.bCanKick then
-        strMsg = Apollo.GetString("Group_Enabled")
+	strMsg = Apollo.GetString("Group_Enabled")
       else
-        strMsg = Apollo.GetString("Group_Disabled")
+	strMsg = Apollo.GetString("Group_Disabled")
       end
 
       if bSelf then
-        strMsg = String_GetWeaselString(Apollo.GetString("Group_PermissionsChangedSelf"), strPermission, strMsg)
+	strMsg = String_GetWeaselString(Apollo.GetString("Group_PermissionsChangedSelf"), strPermission, strMsg)
       elseif GroupLib.AmILeader() then
-        strMsg = String_GetWeaselString(Apollo.GetString("Group_PermissionsChangedOther"), strMsg, tMember.strCharacterName, strPermission)
+	strMsg = String_GetWeaselString(Apollo.GetString("Group_PermissionsChangedOther"), strMsg, tMember.strCharacterName, strPermission)
       end
       self:AddToQueue(ktMessageIcon.Promoted, strMsg)
     end
@@ -1253,9 +1213,9 @@ function VikingGroupDisplay:OnGroupMemberFlags(nMemberIndex, bIsFromPromotion, t
       local strMsg = ""
 
       if tMember.bRoleLocked then
-        strMsg = Apollo.GetString("Group_RaidRoleLock")
+	strMsg = Apollo.GetString("Group_RaidRoleLock")
       else
-        strMsg = Apollo.GetString("Group_RaidRoleUnlock")
+	strMsg = Apollo.GetString("Group_RaidRoleUnlock")
       end
 
       ChatSystemLib.PostOnChannel(self.eChatChannel, strMsg, "")
@@ -1267,9 +1227,9 @@ function VikingGroupDisplay:OnGroupMemberFlags(nMemberIndex, bIsFromPromotion, t
       local strMsg = ""
 
       if tMember.bCanMark then
-        strMsg = String_GetWeaselString(Apollo.GetString("Group_CanMark"), tMember.strCharacterName)
+	strMsg = String_GetWeaselString(Apollo.GetString("Group_CanMark"), tMember.strCharacterName)
       else
-        strMsg = String_GetWeaselString(Apollo.GetString("Group_CanNotMark"), tMember.strCharacterName)
+	strMsg = String_GetWeaselString(Apollo.GetString("Group_CanNotMark"), tMember.strCharacterName)
       end
 
       ChatSystemLib.PostOnChannel(self.eChatChannel, strMsg, "")
@@ -1295,10 +1255,10 @@ function VikingGroupDisplay:OnGroupInviteResult(strCharacterName, eResult)
 
   Apollo.DPF("VikingGroupDisplay:OnGroupInviteResult")
 
-    local unitMe = GameLib.GetPlayerUnit()
-    if unitMe == nil then
+  local unitMe = GameLib.GetPlayerUnit()
+  if unitMe == nil then
     return
-    end
+  end
 
   if ktInviteResultStrings[eResult] then
     local strMsg = ktInviteResultStrings[eResult].strMsg
@@ -1310,7 +1270,7 @@ function VikingGroupDisplay:OnGroupInviteResult(strCharacterName, eResult)
     self:AddToQueue(ktInviteResultStrings[eResult].strIcon, strMsg)
 
     if eResult == GroupLib.Result.ExpiredInvitee then
-      self.fInviteTimerStartTime = nil
+      self.db.char.InviteTimerStartTime = nil
       self.wndGroupInviteDialog:Show(false)
     end
   end
@@ -1319,23 +1279,23 @@ end
 function VikingGroupDisplay:OnGroupRequestResult(strCharacterName, eResult, bIsJoin)
   Apollo.DPF("VikingGroupDisplay:OnGroupRequestResult")
 
-    local unitMe = GameLib.GetPlayerUnit()
-    if unitMe == nil then
+  local unitMe = GameLib.GetPlayerUnit()
+  if unitMe == nil then
     return
-    end
+  end
 
   if bIsJoin then
     if ktJoinRequestResultStrings[eResult] then
       local strMsg = ktJoinRequestResultStrings[eResult].strMsg
 
       if string.find(ktJoinRequestResultStrings[eResult].strMsg, "%$1n") then
-        strMsg = String_GetWeaselString(ktJoinRequestResultStrings[eResult].strMsg, strCharacterName)
+	strMsg = String_GetWeaselString(ktJoinRequestResultStrings[eResult].strMsg, strCharacterName)
       end
 
       self:AddToQueue(ktJoinRequestResultStrings[eResult].strIcon, strMsg)
 
       if eResult == GroupLib.Result.ExpiredInvitee then
-        self.wndRequest:Show(false)
+	self.wndRequest:Show(false)
       end
     end
   else
@@ -1343,13 +1303,13 @@ function VikingGroupDisplay:OnGroupRequestResult(strCharacterName, eResult, bIsJ
       local strMsg = ktReferralStrings[eResult].strMsg
 
       if string.find(ktReferralStrings[eResult].strMsg, "%$1n") then
-        strMsg = String_GetWeaselString(ktReferralStrings[eResult].strMsg, strCharacterName)
+	strMsg = String_GetWeaselString(ktReferralStrings[eResult].strMsg, strCharacterName)
       end
 
       self:AddToQueue(ktReferralStrings[eResult].strIcon, strMsg)
 
       if eResult == GroupLib.Result.ExpiredInvitee then
-        self.wndRequest:Show(false)
+	self.wndRequest:Show(false)
       end
     end
   end
@@ -1506,7 +1466,7 @@ function VikingGroupDisplay:OnGroupMentor(tMemberList, bCurrentlyMentoring, bUpd
 
       local strClassSprite = ""
       if ktInviteClassIcons[tMemberList[idx].tMemberInfo.eClassId] then
-        strClassSprite = ktInviteClassIcons[tMemberList[idx].tMemberInfo.eClassId]
+	strClassSprite = ktInviteClassIcons[tMemberList[idx].tMemberInfo.eClassId]
       end
 
       wndEntry:FindChild("MentorMemberClass"):SetSprite(strClassSprite)
@@ -1528,11 +1488,11 @@ function VikingGroupDisplay:OnGroupMentor(tMemberList, bCurrentlyMentoring, bUpd
   self.wndMentor:FindChild("MentorPlayerBtn"):Enable(false) -- never a case where this is enabled off the bat
   self.wndMentor:FindChild("CancelMentoringBtn"):Enable(bCurrentlyMentoring)
 
-  if not self.fMentorTimerStartTime then
-    self.fMentorTimerStartTime = os.clock()
+  if not self.db.char.MentorTimerStartTime then
+    self.db.char.MentorTimerStartTime = os.clock()
   end
 
-  self.fMentorTimerDiff = os.clock() - self.fMentorTimerStartTime
+  self.fMentorTimerDiff = os.clock() - self.db.char.MentorTimerStartTime
 
 
   local strTime = string.format("%d:%02d", math.floor((knMentorTimeout - self.fMentorTimerDiff) / 60), math.floor((knMentorTimeout - self.fMentorTimerDiff) % 60))
@@ -1571,7 +1531,7 @@ function VikingGroupDisplay:OnMentorPlayerBtn(wndHandler, wndCtrl)
   GroupLib.AcceptMentoring(unitStudent)
 
   self.wndMentor:Show(false)
-  self.fMentorTimerStartTime = nil
+  self.db.char.MentorTimerStartTime = nil
   Apollo.StopTimer("MentorTimer")
 end
 
@@ -1580,13 +1540,13 @@ function VikingGroupDisplay:OnCancelMentoringBtn(wndHandler, wndCtrl)
   GroupLib.CancelMentoring()
 
   self.wndMentor:Show(false)
-  self.fMentorTimerStartTime = nil
+  self.db.char.MentorTimerStartTime = nil
   Apollo.StopTimer("MentorTimer")
 end
 
 function VikingGroupDisplay:OnMentorCloseBtn(wndHandler, wndCtrl)
   self.wndMentor:Show(false)
-  self.fMentorTimerStartTime = nil
+  self.db.char.MentorTimerStartTime = nil
   Apollo.StopTimer("MentorTimer")
 
   GroupLib.CloseMentoringDialog()
@@ -1661,7 +1621,7 @@ function VikingGroupDisplay:OnRaidOkay( wndHandler, wndControl, eMouseButton )
   if self.wndRaidNotice and self.wndRaidNotice:IsValid() then
     local wndDoNotShowAgain = self.wndRaidNotice:FindChild("NeverShowAgainButton")
     if wndDoNotShowAgain:IsChecked() then
-      self.bNeverShowRaidConvertNotice = true
+      self.db.char.NeverShowRaidConvertNotice = true
     end
 
     self.wndRaidNotice:Destroy()
@@ -1669,6 +1629,11 @@ function VikingGroupDisplay:OnRaidOkay( wndHandler, wndControl, eMouseButton )
   end
 end
 
+--------------------------------------------------------------------------------------------------
+-- VikingSettings Functions
+--------------------------------------------------------------------------------------------------
+function VikingGroupDisplay:UpdateSettingsForm(wndContainer)
+end
 ---------------------------------------------------------------------------------------------------
 -- VikingGroupDisplay instance
 ---------------------------------------------------------------------------------------------------
