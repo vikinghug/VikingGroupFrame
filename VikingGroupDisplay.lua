@@ -31,15 +31,14 @@ local ktSmallInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
     [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer_Small"
   }
 
-local ktInviteClassIcons =
-  {
-    [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:ClassWarrior",
-    [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:ClassEngineer",
-    [GameLib.CodeEnumClass.Esper]         = "VikingSprites:ClassEsper",
-    [GameLib.CodeEnumClass.Medic]         = "VikingSprites:ClassMedic",
-    [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:ClassStalker",
-    [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:ClassSpellslinger",
-  }
+local ktInviteClassIcons = {
+  [GameLib.CodeEnumClass.Warrior]       = "VikingSprites:Icon_Class_Warrior_12",
+  [GameLib.CodeEnumClass.Engineer]      = "VikingSprites:Icon_Class_Engineer_12",
+  [GameLib.CodeEnumClass.Esper]         = "VikingSprites:Icon_Class_Esper_12",
+  [GameLib.CodeEnumClass.Medic]         = "VikingSprites:Icon_Class_Medic_12",
+  [GameLib.CodeEnumClass.Stalker]       = "VikingSprites:Icon_Class_Stalker_12",
+  [GameLib.CodeEnumClass.Spellslinger]  = "VikingSprites:Icon_Class_Spellslinger_12"
+}
 
 local karMessageIconString =
   {
@@ -240,6 +239,9 @@ function VikingGroupDisplay:GetDefaults()
       InviteTimerStart = nil,
       MentorTimerStart = nil,
       InviterName      = "",
+      display          = {
+	ShowLevels       = false,
+      }
     }
   }
 
@@ -316,7 +318,7 @@ function VikingGroupDisplay:OnDocumentReady()
     self.db = VikingLib.Settings.RegisterSettings(self, "VikingGroupDisplay", self:GetDefaults(), "Group Frames")
     self.generalDb = self.db.parent
   end
-  
+
   self.wndGroupHud      = Apollo.LoadForm(self.xmlDoc, "GroupHud", "FixedHudStratum", self)
   self.wndGroupHud:Show(false, true)
   self.wndLeaveGroup      = self.wndGroupHud:FindChild("GroupHudLeaveDialog")
@@ -440,7 +442,8 @@ function VikingGroupDisplay:LoadPortrait(idx)
       wndLowHealthFlash = wndHud:FindChild("LowHealthFlash"),
       wndPathIcon       = wndHud:FindChild("PathIcon"),
       wndOffline        = wndHud:FindChild("Offline"),
-      wndMark           = wndHud:FindChild("Mark")
+      wndMark           = wndHud:FindChild("Mark"),
+      wndLevel          = wndHud:FindChild("Level"),
     }
 
   self.tGroupWndPortraits[idx].wndHud:Show(false)
@@ -880,6 +883,13 @@ function VikingGroupDisplay:DrawMemberPortrait(tPortrait, tMemberInfo)
   if tMemberInfo.nMarkerId ~= 0 then
     tPortrait.wndMark:SetSprite(kstrRaidMarkerToSprite[tMemberInfo.nMarkerId])
   end
+
+  if self.db.char.display["ShowLevels"] then
+    tPortrait.wndLevel:SetText(tMemberInfo.nLevel)
+  else
+    tPortrait.wndLevel:SetText("")
+  end
+
 end
 
 function VikingGroupDisplay:HelperUpdateHealth(tPortrait, tMemberInfo, unitMember)
@@ -1633,6 +1643,12 @@ end
 -- VikingSettings Functions
 --------------------------------------------------------------------------------------------------
 function VikingGroupDisplay:UpdateSettingsForm(wndContainer)
+  -- Display
+  wndContainer:FindChild("Display:Content:ShowLevels"):SetCheck(self.db.char.display["ShowLevels"])
+end
+
+function VikingGroupDisplay:OnSettingsDisplay(wndHandler, wndControl, eMouseButton)
+  self.db.char.display[wndControl:GetName()] = wndControl:IsChecked()
 end
 ---------------------------------------------------------------------------------------------------
 -- VikingGroupDisplay instance
