@@ -944,10 +944,10 @@ function VikingGroupDisplay:HelperUpdateHealth(tPortrait, tMemberInfo, unitMembe
   tPortrait.wndMaxAbsorb:SetAnchorOffsets(self.nFrameLeft, self.nMaxAbsorbFrameTop, nPointAbsorbRight, self.nMaxAbsorbFrameBottom)
 
   -- Bars
-  tPortrait.wndShields:Show(nHealthCurr > 0)
-  tPortrait.wndHealth:Show(nHealthCurr > 0) -- TODO: Temp The sprite draws poorly this low.
-  tPortrait.wndMaxShields:Show(nHealthCurr > 0 and nShieldMax > 0)
-  tPortrait.wndMaxAbsorb:Show(nHealthCurr > 0 and nAbsorbMax > 0)
+  tPortrait.wndShields:Show(nHealthCurr > 0 and tMemberInfo.bIsOnline)
+  tPortrait.wndHealth:Show(nHealthCurr > 0 and tMemberInfo.bIsOnline) -- TODO: Temp The sprite draws poorly this low.
+  tPortrait.wndMaxShields:Show(nHealthCurr > 0 and nShieldMax > 0 and tMemberInfo.bIsOnline)
+  tPortrait.wndMaxAbsorb:Show(nHealthCurr > 0 and nAbsorbMax > 0 and tMemberInfo.bIsOnline)
 end
 
 function VikingGroupDisplay:SetBarValue(wndBar, fMin, fValue, fMax)
