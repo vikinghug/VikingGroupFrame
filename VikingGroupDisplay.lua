@@ -25,10 +25,10 @@ local ktInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
 
 local ktSmallInvitePathIcons = -- NOTE: ID's are zero-indexed in CPP
   {
-    [PlayerPathLib.PlayerPathType_Soldier]    = "Icon_Windows_UI_CRB_Soldier_Small",
-    [PlayerPathLib.PlayerPathType_Settler]    = "Icon_Windows_UI_CRB_Colonist_Small",
-    [PlayerPathLib.PlayerPathType_Scientist]  = "Icon_Windows_UI_CRB_Scientist_Small",
-    [PlayerPathLib.PlayerPathType_Explorer]   = "Icon_Windows_UI_CRB_Explorer_Small"
+    [PlayerPathLib.PlayerPathType_Soldier]    = "VikingSprites:Icon_Path_Soldier_12",
+    [PlayerPathLib.PlayerPathType_Settler]    = "VikingSprites:Icon_Path_Settler_12",
+    [PlayerPathLib.PlayerPathType_Scientist]  = "VikingSprites:Icon_Path_Scientist_12",
+    [PlayerPathLib.PlayerPathType_Explorer]   = "VikingSprites:Icon_Path_Explorer_12",
   }
 
 local ktInviteClassIcons = {
@@ -241,6 +241,7 @@ function VikingGroupDisplay:GetDefaults()
       InviterName      = "",
       display          = {
 	ShowLevels       = false,
+	ShowPath         = false,
       }
     }
   }
@@ -845,7 +846,7 @@ function VikingGroupDisplay:DrawMemberPortrait(tPortrait, tMemberInfo)
   tPortrait.wndName:SetText(strName)
   tPortrait.wndLeader:Show(tMemberInfo.bIsLeader)
   tPortrait.wndClass:Show(tMemberInfo.bIsOnline)
-  tPortrait.wndPathIcon:Show(tMemberInfo.bIsOnline)
+  tPortrait.wndPathIcon:Show(tMemberInfo.bIsOnline and self.db.char.display["ShowPath"])
   tPortrait.wndOffline:SetRotation(90)
   tPortrait.wndOffline:Show(not tMemberInfo.bIsOnline)
   tPortrait.wndHud:FindChild("DeadIndicator"):Show(bDead)
@@ -1645,6 +1646,7 @@ end
 function VikingGroupDisplay:UpdateSettingsForm(wndContainer)
   -- Display
   wndContainer:FindChild("Display:Content:ShowLevels"):SetCheck(self.db.char.display["ShowLevels"])
+  wndContainer:FindChild("Display:Content:ShowPath"):SetCheck(self.db.char.display["ShowPath"])
 end
 
 function VikingGroupDisplay:OnSettingsDisplay(wndHandler, wndControl, eMouseButton)
